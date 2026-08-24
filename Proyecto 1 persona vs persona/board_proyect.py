@@ -19,65 +19,52 @@ class Board:
     
         def __str__(self) -> str:
             """Retorna una representación legible del tablero)"""
+            width = len(str(self.__size))
             
-            # Cantidad de caracteres para la columna con número de fila
-            offset = math.ceil(math.log10(self.__size))
-            # Primera línea
-            board = " "*offset + " "
-            board += " ".join(chr(ord('A') + i) for i in range(self.__size)) + "\n"
-            for i, line in enumerate(self.__places, 1):
-                # Falta arreglar el ancho del primer número
-                board += f"{i} " + " ".join(line) + '\n'
-            return board
-    
+            header = " "* (width + 1)
+            header += " ".join(
+                f"{column:>{width}}" for column in range(1, self.__size + 1) + "\n")
+            
+            lines = [header]
+            for row_number, row in enumerate(self.__places, 1):
+                row_text = " ".join(f"{value:>{width}}" for value in row)
+                lines.append(f"{row_number:>{width}} {row_text}")
+
+            return "\n".join(lines) + "\n"
+
         def __repr__(self) -> str:
-            """Función para cuando se llama repr(self)"""
+            """Retorna la representación técnica del objeto"""
             return f"Board({self.__size})"
     
         def __len__(self) -> int:
-            """Función para cuando se llama len(self)"""
+            """Retorna el tamaño del tablero"""
             return self.__size
     
         def __check_valid_range(self, r: int) -> bool:
-            """Valida que el valor esté dentro del rango del tablero
-            
-            Esto considera que las posiciones van de 1 a n
-            """
-            # Nombre con dos guiones bajos al inicio se interpreta como privada
-            # En relidad, Python le cambia internamente el nombre, porque no tiene
-            # el concepto real de atributo o método privado
-            if 1 > r or r > self.__size:
-                return False
-            return True
+            """Valida que un índice esté entre 1 y n"""
+            return 1 <= value <= self.__size
     
         def __getitem__(self, subscript: int | tuple):
-            """Implementa self[subscript]
-            
-            En este caso, `subscript` puede ser un entero (fila) o una tupla
-            (coordenadas).
-            
-            Levanta excepciones, si no se usa bien.
-            """
+            """Esto permite acceder a la fila o a una coordenada del tablero""""
+
             if isinstance(subscript, tuple):
-                # Si es una tupla
-                # Si son más o menos que filas y columnas
                 if len(subscript) != 2:
-                    raise ValueError("Cooordinates with too many dimensions")
-                # Si la fila está fuera de rangoo
+                    raise ValueError("Las coordenadas deben tener fila y columna")
+                
                 if not self.__check_valid_range(subscript[0]):
                     raise LookupError(f"Row out of range: {subscript[0]}")
-                # Si la columna está fuera de rango
+                
                 if not  self.__check_valid_range(subscript[1]):
                     raise LookupError(f"Column out of range: {subscript[1]}")
+            
                 return self.__places[subscript[0] - 1][subscript[1] - 1]
+            
             elif isinstance(subscript, int):
-                # Si es un entero
                 if not self.__check_valid_range(subscript):
                     raise LookupError(f"Row out of range: {subscript}")
                 return self.__places[subscript - 1]
             else:
-                # Si el índice no es del tipo correcto
-                raise TypeError("Subscript must be integer or coordinates")
+                raise TypeError("El indice debe ser entero o tupla")
         
         def __setitem__(self, key: tuple, value: str) ->  None:
             """Implementa self[key] = value
