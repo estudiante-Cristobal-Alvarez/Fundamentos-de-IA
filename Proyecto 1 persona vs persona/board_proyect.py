@@ -12,7 +12,11 @@ class Board:
         """Crea un tablero cuadrado de tamaño n x n"""
         if n <= 0:
             raise ValueError(
-                "Debe seleccionar un número mayor a 0 para el tablero"
+                "Debe seleccionar un número positivo para el tablero"
+            )
+        if n < 4:
+            raise ValueError(
+                "Debe seleccionar un número mayor a 4 para el tablero"
             )
 
         self.__places = [
@@ -34,7 +38,6 @@ class Board:
             board += f"{i} " + " ".join(line) + '\n'
 
         return board
-
     def __repr__(self) -> str:
         """Función para cuando se llama repr(self)"""
         return f"Board({self.__size})"
@@ -125,60 +128,78 @@ class Board:
 class TicTacToeBoard(Board):
 
     def __init__(self, jugador1="A", jugador2="B"):
-        super().__init__(3)
+        super().__init__(5)
 
         self.jugador1 = jugador1
         self.jugador2 = jugador2
+        n = len(self)
+        self.ultima_jugada1 = (1, 1)
+        self.ultima_jugada2 = (n, n)
+        self[1, 1] = self.jugador1
+        self[n, n] = self.jugador2
 
     def juego1(self, fila, columna):
+        if self.ultima_jugada1 is not None or (
+            self[self.ultima_jugada1] == "A"
+            or self[self.ultima_jugada1] == "B"
+        ):
+            self[self.ultima_jugada1] = "X"
 
         if not self.valid_move(fila, columna):
             raise ValueError("Casilla ocupada")
 
         self[fila, columna] = self.jugador1
+        self.ultima_jugada1 = (fila, columna)
 
     def juego2(self, fila, columna):
+        if self.ultima_jugada2 is not None or (
+            self[self.ultima_jugada2] == "A"
+            or self[self.ultima_jugada2] == "B"
+        ):
+            self[self.ultima_jugada2] = "X"
 
         if not self.valid_move(fila, columna):
             raise ValueError("Casilla ocupada")
 
         self[fila, columna] = self.jugador2
+        self.ultima_jugada2 = (fila, columna)
+
+    def tiene_movimientos(self, fila, columna):
+
+        direcciones = [
+            (-1, -1), (-1, 0), (-1, 1),
+            (0, -1),           (0, 1),
+            (1, -1), (1, 0), (1, 1)
+        ]
+
+        for df, dc in direcciones:
+
+            f = fila + df
+            c = columna + dc
+
+            while 1 <= f <= len(self) and 1 <= c <= len(self):
+                if self.valid_move(f, c):
+                    return True
+
+                f += df
+                c += dc
+
+        return False
 
     def validate_winner(self, jugador):
 
-        ficha = (
-            self.jugador1
+        posicion = (
+            self.ultima_jugada1
             if jugador == 1
-            else self.jugador2
+            else self.ultima_jugada2
         )
 
-        for fila in range(1, 4):
-            if all(
-                self[fila, col] == ficha
-                for col in range(1, 4)
-            ):
-                return True
+        if posicion is None:
+            return False
 
-        for col in range(1, 4):
-            if all(
-                self[fila, col] == ficha
-                for fila in range(1, 4)
-            ):
-                return True
+        fila, columna = posicion
 
-        if all(
-            self[i, i] == ficha
-            for i in range(1, 4)
-        ):
-            return True
-
-        if all(
-            self[i, 4 - i] == ficha
-            for i in range(1, 4)
-        ):
-            return True
-
-        return False
+        return not self.tiene_movimientos(fila, columna)
 
 
 def main():
@@ -186,12 +207,30 @@ def main():
     ganador = ""
 
     board = TicTacToeBoard("A", "B")
+    print(board)
 
     turno = 1
 
-    while ganador == "" and turno <= 9:
+    while ganador == "":
 
         player = "A" if turno % 2 == 1 else "B"
+
+        jugador_actual = (
+            1 if player == "A" else 2
+        )
+        print(board.validate_winner(1))
+
+        print(board.validate_winner(2))
+        print("Jugador:", jugador_actual)
+
+        print("Resultado:", board.validate_winner(jugador_actual))
+        if board.validate_winner(jugador_actual):
+
+            ganador = (
+                "B" if player == "A" else "A"
+            )
+
+            break
 
         fila, columna = map(
             int,
@@ -207,19 +246,9 @@ def main():
 
         print(board)
 
-        jugador_actual = (
-            1 if player == "A" else 2
-        )
-
-        if board.validate_winner(jugador_actual):
-            ganador = player
-
         turno += 1
 
-    if ganador:
-        print(f"¡Gana el jugador {ganador}!")
-    else:
-        print("Empate")
+    print(f"¡Gana el jugador {ganador}!")
 
 
 if __name__ == "__main__":
