@@ -20,7 +20,7 @@ def leer_argumentos():
 
 
 def leer_movimiento(jugador: str) -> tuple[int, int]:
-    """Solicita al jugador un destino con formato fila,columna."""
+    """Solicita al jugador un destino con formato fila, columna."""
     while True:
         try:
             valores = input(

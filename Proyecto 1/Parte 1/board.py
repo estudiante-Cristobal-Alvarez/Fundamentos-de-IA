@@ -5,7 +5,7 @@ class Board:
     __tamano: int
     ESPACIO_VACIO = "."
 
-    def __init__(self, n: int = 3):
+    def __init__(self, n: int = 4):
         """Crea un tablero cuadrado de tamaño n x n."""
         if n <= 0:
             raise ValueError(
