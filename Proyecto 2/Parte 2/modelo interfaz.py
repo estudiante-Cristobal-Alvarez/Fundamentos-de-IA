@@ -212,12 +212,85 @@ def reconocer_pregunta(pregunta):
         "que automoviles poseen interior comodo": "interior_comodo",
         "que automoviles son ecologicos": "ecologicos",
         "que automoviles son de trabajo pesado": "trabajo_pesado",
-        "que automoviles familiares sirven para aventuras": "aventura"
+        "que automoviles familiares sirven para aventuras": "aventura",
+        
+        # Preguntas alternativas.
+        "que automoviles son aptos para transportar carga": "carga",
+        "que automoviles sirven para transportar carga": "carga",
+        "que automoviles son ideales para la ciudad": "urbanos",
+        "que automoviles tienen un consumo bajo": "bajo_consumo",
+        "que automoviles consumen menos combustible": "bajo_consumo",
+        "que automoviles sirven para trabajar": "trabajo",
+        "que automoviles tienen mayor espacio de carga": "espacio_carga_alto",
+        "que automoviles tienen un interior comodo": "interior_comodo",
+        "que automoviles son adecuados para aventuras familiares": "aventura",
+        "que automoviles tienen motor electrico": "ecologicos",
+        "que automoviles sirven para conducir fuera de carretera": "offroad",
+        "que automoviles son aptos para uso off-road": "offroad",
+        "que automoviles son buenos para una familia": "familiares",
+        "que automoviles son de gran tamano": "grandes",
+        "que automoviles tienen capacidad para pasajeros": "pasajeros"
     }
 
-    texto = normalizar_texto(pregunta)
-    return preguntas.get(texto)
+   
+    # Normalizar la pregunta escrita por el usuario.
+    texto = aplicar_sinonimos(normalizar_texto(pregunta))
 
+    # Aplicar el mismo tratamiento a las preguntas conocidas.
+    preguntas_normalizadas = {
+        aplicar_sinonimos(normalizar_texto(frase)): clave
+        for frase, clave in preguntas.items()
+    }
+
+    return preguntas_normalizadas.get(texto)
+
+
+
+
+def aplicar_sinonimos(texto):
+    sinonimos = {
+        "vehiculos": "automoviles",
+        "autos": "automoviles",
+        "coches": "automoviles",
+        "cuales son los": "que automoviles son",
+        "cuales son las": "que automoviles son",
+        "para una familia": "para familia",
+        "para la familia": "para familia",
+        "fuera de carretera": "off-road",
+        "todoterreno": "off-road",
+        "ecologicas": "ecologicos"
+    }
+
+    for original, reemplazo in sorted(
+        sinonimos.items(),
+        key=lambda elemento: len(elemento[0]),
+        reverse=True
+    ):
+        # Sustituir palabras o expresiones completas.
+        palabras = texto.split()
+        origen = original.split()
+        destino = reemplazo.split()
+
+        resultado = []
+        i = 0
+
+        while i < len(palabras):
+            if palabras[i:i + len(origen)] == origen:
+                resultado.extend(destino)
+                i += len(origen)
+            else:
+                resultado.append(palabras[i])
+                i += 1
+
+        texto = " ".join(resultado)
+
+    # Evitar duplicar "automoviles".
+    texto = texto.replace(
+        "automoviles automoviles",
+        "automoviles"
+    )
+
+    return texto
 
 
 def iniciar_chatbot():
@@ -287,6 +360,23 @@ def mostrar_ayuda():
         print(f"{numero}. {pregunta}")
 
     print("==========================================\n")
+
+
+# Pruebas del reconocimiento de preguntas.
+print("PRUEBAS DE RECONOCIMIENTO")
+
+pruebas = [
+    "¿Cuáles son los vehículos ecológicos?",
+    "¿Qué autos son aptos para carga?",
+    "¿Qué automóviles consumen menos combustible?",
+    "¿Qué automóviles sirven para trabajar?",
+    "¿Qué automóviles son ideales para la ciudad?",
+    "¿Qué automóviles son adecuados para aventuras familiares?"
+]
+
+for pregunta in pruebas:
+    clave = reconocer_pregunta(pregunta)
+    print(f"{pregunta} -> {clave}")
 
 
 if __name__ == "__main__":
